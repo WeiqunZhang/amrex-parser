@@ -20,7 +20,7 @@ void amrexpr_parsererror (char const *s, ...);
 
 namespace amrexpr {
 
-enum parser_f1_t {  // Built-in functions with one argument
+enum parser_f1_t : short int {  // Built-in functions with one argument
     PARSER_SQRT,
     PARSER_EXP,
     PARSER_LOG,
@@ -77,7 +77,7 @@ std::string_view parser_f1_s[] =
     "erf"
 };
 
-enum parser_f2_t {  // Built-in functions with two arguments
+enum parser_f2_t : short int {  // Built-in functions with two arguments
     PARSER_POW,
     PARSER_ATAN2,
     PARSER_GT,
@@ -120,7 +120,7 @@ std::string_view parser_f2_s[] =
     "fmod"
 };
 
-enum parser_f3_t { // functions with three arguments
+enum parser_f3_t : short int { // functions with three arguments
     PARSER_IF
 };
 
@@ -135,7 +135,7 @@ std::string_view parser_f3_s[] =
     "if"
 };
 
-enum parser_node_t {
+enum parser_node_t : short int {
     PARSER_NUMBER,
     PARSER_SYMBOL,
     PARSER_ADD,
@@ -179,6 +179,7 @@ std::string_view parser_node_s[] =
 struct parser_node {
     enum parser_node_t type;
     enum parser_node_t padding;
+    int ipad;
     struct parser_node* l; // NOLINT(misc-confusable-identifiers)
     struct parser_node* r;
     struct parser_node* padding2;
@@ -198,6 +199,7 @@ struct alignas(parser_node) parser_symbol {
 struct alignas(parser_node) parser_f1 {  /* Builtin functions with one argument */
     enum parser_node_t type;
     enum parser_f1_t ftype;
+    int ipad;
     struct parser_node* l; // NOLINT(misc-confusable-identifiers)
     struct parser_node* padding1;
     struct parser_node* padding2;
@@ -206,6 +208,7 @@ struct alignas(parser_node) parser_f1 {  /* Builtin functions with one argument 
 struct alignas(parser_node) parser_f2 {  /* Builtin functions with two arguments */
     enum parser_node_t type;
     enum parser_f2_t ftype;
+    int ipad;
     struct parser_node* l; // NOLINT(misc-confusable-identifiers)
     struct parser_node* r;
     struct parser_node* padding;
@@ -214,6 +217,7 @@ struct alignas(parser_node) parser_f2 {  /* Builtin functions with two arguments
 struct alignas(parser_node) parser_f3 { /* Builtin functions with three arguments */
     enum parser_node_t type;
     enum parser_f3_t ftype;
+    int ipad;
     struct parser_node* n1;
     struct parser_node* n2;
     struct parser_node* n3;
