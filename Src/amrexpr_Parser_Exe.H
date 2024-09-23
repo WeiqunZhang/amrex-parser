@@ -22,7 +22,7 @@ namespace amrexpr {
 // P: pointer offset
 // V: value (i.e., double literal)
 
-enum parser_exe_t {
+enum parser_exe_t : short int {
     PARSER_EXE_NULL = 0,
     PARSER_EXE_NUMBER,
     PARSER_EXE_SYMBOL,
@@ -33,6 +33,7 @@ enum parser_exe_t {
     PARSER_EXE_DIV_F,
     PARSER_EXE_DIV_B,
     PARSER_EXE_F1,
+    PARSER_EXE_F1_P,
     PARSER_EXE_F2_F,
     PARSER_EXE_F2_B,
     PARSER_EXE_ADD_VP,
@@ -98,6 +99,12 @@ struct alignas(8) ParserExeDIV_B {
 struct alignas(8) ParserExeF1 {
     enum parser_exe_t type = PARSER_EXE_F1;
     parser_f1_t ftype;
+};
+
+struct alignas(8) ParserExeF1_P {
+    enum parser_exe_t type = PARSER_EXE_F1_P;
+    parser_f1_t ftype;
+    int i;
 };
 
 struct alignas(8) ParserExeF2_F {
@@ -294,6 +301,14 @@ double parser_exe_eval (const char* p, double const* x)
         {
             pstack.top() = parser_call_f1(((ParserExeF1*)p)->ftype, pstack.top()); // NOLINT
             p += sizeof(ParserExeF1);
+            break;
+        }
+        case PARSER_EXE_F1_P:
+        {
+            int i = ((ParserExeF1_P*)p)->i;
+            double d = AMREXPR_PARSER_GET_DATA(i);
+            pstack.push(parser_call_f1(((ParserExeF1_P*)p)->ftype, d));
+            p += sizeof(ParserExeF1_P);
             break;
         }
         case PARSER_EXE_F2_F:

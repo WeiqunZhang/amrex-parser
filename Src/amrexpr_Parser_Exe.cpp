@@ -32,7 +32,7 @@ parser_compile_exe_size (struct parser_node* node, char*& p, std::size_t& exe_si
         }
     };
 
-    // In parser_exe_eval, we push to the stack for NUMBER, SYMBOL, VP, PP.
+    // In parser_exe_eval, we push to the stack for NUMBER, SYMBOL, VP, PP, F1_P.
     // In parser_exe_eval, we pop the stack for ADD, SUB, MUL, DIV, F2, and IF.
 
     switch (node->type)
@@ -435,14 +435,29 @@ parser_compile_exe_size (struct parser_node* node, char*& p, std::size_t& exe_si
     }
     case PARSER_F1:
     {
-        parser_compile_exe_size(((struct parser_f1*)node)->l, p, exe_size,
-                                max_stack_size, stack_size, local_variables);
-        if (p) {
-            auto *t = new(p) ParserExeF1;
-            p      += sizeof(ParserExeF1);
-            t->ftype = ((struct parser_f1*)node)->ftype;
+        if (((struct parser_f1*)node)->l->type == PARSER_SYMBOL)
+        { // f1(x)
+            if (p) {
+                auto *t = new(p) ParserExeF1_P;
+                p      += sizeof(ParserExeF1_P);
+                t->ftype = ((struct parser_f1*)node)->ftype;
+                t->i = parser_symbol_idx(((struct parser_f1*)node)->l);
+            }
+            exe_size += sizeof(ParserExeF1_P);
+            ++stack_size;
+            max_stack_size = std::max(max_stack_size, stack_size);
         }
-        exe_size += sizeof(ParserExeF1);
+        else
+        {
+            parser_compile_exe_size(((struct parser_f1*)node)->l, p, exe_size,
+                                    max_stack_size, stack_size, local_variables);
+            if (p) {
+                auto *t = new(p) ParserExeF1;
+                p      += sizeof(ParserExeF1);
+                t->ftype = ((struct parser_f1*)node)->ftype;
+            }
+            exe_size += sizeof(ParserExeF1);
+        }
         break;
     }
     case PARSER_F2:
@@ -787,6 +802,19 @@ void parser_exe_print(char const* p, std::vector<std::string> const& vars,
                << "   "
                << pstack.back().first << "\n";
             p += sizeof(ParserExeF1);
+            break;
+        }
+        case PARSER_EXE_F1_P:
+        {
+            int i = ((ParserExeF1_P*)p)->i;
+            pstack.push_back(make_f1_string(parser_f1_s[((ParserExeF1_P*)p)->ftype],
+                                            get_sym(i).first));
+            os << std::setw(3) << count++
+               << std::setw(16) << parser_f1_s[((ParserExeF1_P*)p)->ftype]
+               << std::setw(12) << pstack.size()
+               << "   "
+               << pstack.back().first << "\n";
+            p += sizeof(ParserExeF1_P);
             break;
         }
         case PARSER_EXE_F2_F:
